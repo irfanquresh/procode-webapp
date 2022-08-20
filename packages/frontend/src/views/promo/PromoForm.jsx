@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { object, array, date, ref, string, number } from "yup";
+import moment from "moment";
 
-// Utils
+import FormInput from "components/Form/FormInput";
+import FormSelectInput from "components/Form/FormSelectInput";
+
 import { yupValidationResolver } from "utils/yup.util";
+import { useGetPromoQuery } from "store/promo/promoApiSlice";
 
 // Validations
 const ensureNumber = (val) => (isFinite(val) ? val : undefined);
 
 const resolver = yupValidationResolver(
   object().shape({
-    title: string().min(5).max(32).required("Title is required!"),
+    title: string().min(5).max(100).required("Title is required!"),
     startDate: date()
       .nullable()
       .transform((v) => (v instanceof Date && !isNaN(v) ? v : null))
@@ -43,38 +47,68 @@ const resolver = yupValidationResolver(
 );
 
 const style = {
-  inputBaseClass:
-    "w-full px-5 py-2 placeholder-slate-300 text-slate-600 bg-white rounded-2 text-lg shadow  ease-linear transition-all duration-150",
-  inputBorderClass:
-    "border border-sky-300 focus:border-2 focus:border-sky-500 focus:ring-2 focus:ring-sky-500",
-  inputBorderErrorClass:
-    "border-2 border-red-300 ring ring-offset-0 ring-red-300 focus:border-2 focus:border-red-500 focus:ring focus:ring-offset-0 focus:ring-red-500",
   btnBaseClass:
     "text-white text-sm font-bold bg-sky-500 active:bg-sky-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150",
   btnDangerClass:
     "text-white text-sm font-bold bg-red-500 active:bg-red-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150",
 };
 
-const defaultValue = { id: "", name: "", qty: "" };
+const defaultValue = { id: "", qty: "" };
 
-const PromoForm = ({ formData, onSubmit }) => {
+const PromoForm = ({ formData, onSubmit, onClose }) => {
+  const id = formData?.promo?.id ?? "";
   const [buyBrandOrProduct, setBuyBrandOrProduct] = useState([defaultValue]);
   const [offerProduct, setOfferProduct] = useState([defaultValue]);
 
   const {
+    data,
+    refetch: refetchPromo,
+    isLoading,
+  } = useGetPromoQuery(id, { skip: !id });
+
+  const {
+    reset,
     trigger,
     handleSubmit,
     register,
+    unregister,
     formState: { errors },
     setValue,
     getValues,
   } = useForm({ resolver });
 
   useEffect(() => {
-    if (formData?.promo?.title) {
-      setValue("title", formData?.promo?.title);
+    refetchPromo();
+  }, []);
+
+  useEffect(() => {
+    if (data && data?.id) {
+      reset();
+      setValue("id", data?.id);
+      setValue("title", data.title);
+      setValue("startDate", moment(data.startDate).format("yyyy-MM-DD"));
+      setValue("endDate", moment(data.endDate).format("yyyy-MM-DD"));
+      setValue("appliedOn", data.appliedOn);
+
+      const newBuyBrandOrProduct = data.buyBrandOrProduct ?? [defaultValue];
+      const newOfferProduct = data.offerProduct ?? [defaultValue];
+      setBuyBrandOrProduct(newBuyBrandOrProduct);
+      setOfferProduct(newOfferProduct);
+
+      for (let i = 0; i < newBuyBrandOrProduct.length; i++) {
+        setValue(`buyBrandOrProduct[${i}].id`, newBuyBrandOrProduct[i].id);
+        setValue(`buyBrandOrProduct[${i}].qty`, newBuyBrandOrProduct[i].qty);
+      }
+      for (let i = 0; i < newOfferProduct.length; i++) {
+        setValue(`offerProduct[${i}].id`, newOfferProduct[i].id);
+        setValue(`offerProduct[${i}].qty`, newOfferProduct[i].qty);
+      }
+    } else {
+      setValue("id", "");
+      setValue("startDate", moment().format("yyyy-MM-DD"));
+      setValue("endDate", moment().add(5, "days").format("yyyy-MM-DD"));
     }
-  }, [formData, setValue]);
+  }, [setValue, reset, data, isLoading]);
 
   const addBuyBrandOrProduct = async () => {
     setBuyBrandOrProduct([...buyBrandOrProduct, defaultValue]);
@@ -88,8 +122,9 @@ const PromoForm = ({ formData, onSubmit }) => {
     const buyBrandOrProduct = getValues("buyBrandOrProduct");
     const newBuyBrandOrProduct = [...buyBrandOrProduct];
     newBuyBrandOrProduct.splice(index, 1);
-    setBuyBrandOrProduct(newBuyBrandOrProduct);
 
+    unregister(`buyBrandOrProduct`);
+    setBuyBrandOrProduct(newBuyBrandOrProduct);
     for (let i = 0; i < newBuyBrandOrProduct.length; i++) {
       setValue(`buyBrandOrProduct[${i}].id`, newBuyBrandOrProduct[i].id);
       setValue(`buyBrandOrProduct[${i}].qty`, newBuyBrandOrProduct[i].qty);
@@ -100,85 +135,34 @@ const PromoForm = ({ formData, onSubmit }) => {
     const offerProduct = getValues("offerProduct");
     const newOfferProduct = [...offerProduct];
     newOfferProduct.splice(index, 1);
-    setOfferProduct(newOfferProduct);
 
+    unregister(`offerProduct`);
+    setOfferProduct(newOfferProduct);
     for (let i = 0; i < newOfferProduct.length; i++) {
       setValue(`offerProduct[${i}].id`, newOfferProduct[i].id);
       setValue(`offerProduct[${i}].qty`, newOfferProduct[i].qty);
     }
   };
 
-  const ErrorMessage = ({ errors, name }) => {
-    if (errors[`${name}`]?.message) {
-      return <p className="text-red-400 text-md">{errors[`${name}`]?.message}</p>;
-    } else {
-      return null;
-    }
-  };
-
-  const FormInput = ({ type, label, name, value, onChange, errors }) => {
-    return (
-      <>
-        <label className="block text-slate-600 text-sm font-bold">{label}</label>
-        <div className="relative w-full">
-          <input
-            {...register(name)}
-            type={type}
-            className={
-              style.inputBaseClass +
-              " " +
-              (errors[`${name}`]?.message
-                ? style.inputBorderErrorClass
-                : style?.inputBorderClass)
-            }
-          />
-          <ErrorMessage errors={errors} name={name} />
-        </div>
-      </>
-    );
-  };
-
-  const FormSelectInput = ({ label, name, value, options, onChange, errors }) => {
-    return (
-      <>
-        <label className="block text-slate-600 text-sm font-bold">{label}</label>
-        <div className="relative w-full">
-          <select
-            {...register(name)}
-            value={value ?? ""}
-            onChange={(e) => {
-              setValue(name, e.target.value);
-              trigger(name);
-            }}
-            className={
-              style.inputBaseClass +
-              " " +
-              (errors[`${name}`]?.message
-                ? style.inputBorderErrorClass
-                : style?.inputBorderClass)
-            }
-          >
-            {options?.map((item, idx) => (
-              <option value={item.id} key={name + "-" + item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-          <ErrorMessage errors={errors} name={name} />
-        </div>
-      </>
-    );
-  };
-
   return (
-    <form onSubmit={(e) => e.preventDefault()}>
+    <>
       <div className="grid grid-cols-2 gap-2">
+        <div className="mb-2 hidden">
+          <FormInput {...register("id")} type="text" name="id" />
+        </div>
         <div className="mb-2">
-          <FormInput type="text" label="Title" name="title" errors={errors} />
+          <FormInput
+            {...register("title")}
+            type="text"
+            label="Title"
+            name="title"
+            errors={errors}
+          />
         </div>
 
         <div className="mb-2">
           <FormInput
+            {...register("startDate")}
             type="date"
             label="Start Date"
             name="startDate"
@@ -187,11 +171,22 @@ const PromoForm = ({ formData, onSubmit }) => {
         </div>
 
         <div className="mb-2">
-          <FormInput type="date" label="End Date" name="endDate" errors={errors} />
+          <FormInput
+            {...register("endDate")}
+            type="date"
+            label="End Date"
+            name="endDate"
+            errors={errors}
+          />
         </div>
 
         <div className="mb-2">
           <FormSelectInput
+            {...register("appliedOn")}
+            onChange={(e) => {
+              setValue("appliedOn", e.target.value);
+              trigger("appliedOn");
+            }}
             options={[
               { id: "brand", name: "Brand" },
               { id: "product", name: "Product" },
@@ -208,65 +203,73 @@ const PromoForm = ({ formData, onSubmit }) => {
           Select Products/Brands
         </h2>
 
-        {buyBrandOrProduct.map((_, index) => {
-          const fieldName = `buyBrandOrProduct[${index}]`;
-          return (
-            <fieldset name={fieldName} key={fieldName}>
-              <div className="grid grid-cols-5 gap-2">
-                <div className="col-span-3">
-                  <div className="mb-2">
-                    <FormSelectInput
-                      options={
-                        getValues("appliedOn") === "brand"
-                          ? formData?.brand ?? []
-                          : formData?.product ?? []
-                      }
-                      label={
-                        getValues("appliedOn") === "brand"
-                          ? "Select Brand"
-                          : "Select Product"
-                      }
-                      name={`${fieldName}.id`}
-                      errors={errors}
-                    />
+        {buyBrandOrProduct
+          .filter((item) => !!item)
+          .map((_, index) => {
+            const fieldName = `buyBrandOrProduct[${index}]`;
+            return (
+              <fieldset name={fieldName} key={fieldName}>
+                <div className="grid grid-cols-5 gap-2">
+                  <div className="col-span-3">
+                    <div className="mb-2">
+                      <FormSelectInput
+                        {...register(`${fieldName}.id`)}
+                        options={
+                          getValues("appliedOn") === "brand"
+                            ? formData?.brand ?? []
+                            : formData?.product ?? []
+                        }
+                        label={
+                          getValues("appliedOn") === "brand"
+                            ? "Select Brand"
+                            : "Select Product"
+                        }
+                        onChange={(e) => {
+                          setValue(`${fieldName}.id`, e.target.value);
+                          trigger(`${fieldName}.id`);
+                        }}
+                        name={`${fieldName}.id`}
+                        errors={errors}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-1">
-                  <div className="mb-2">
-                    <FormInput
-                      type="number"
-                      label="Quantity"
-                      name={`${fieldName}.qty`}
-                      errors={errors}
-                    />
+                  <div className="col-span-1">
+                    <div className="mb-2">
+                      <FormInput
+                        {...register(`${fieldName}.qty`)}
+                        type="number"
+                        label="Quantity"
+                        name={`${fieldName}.qty`}
+                        errors={errors}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="col-span-1">
-                  <div className="mb-2 mt-6 text-center">
-                    {index === 0 ? (
-                      <button
-                        type="button"
-                        className={style.btnBaseClass}
-                        onClick={() => addBuyBrandOrProduct(index)}
-                      >
-                        <i className={"fa fa-plus"}></i>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={style.btnDangerClass}
-                        onClick={() => removeBuyBrandOrProduct(index)}
-                      >
-                        <i className={"fa fa-minus"}></i>
-                      </button>
-                    )}
+                  <div className="col-span-1">
+                    <div className="mb-2 mt-6 text-center">
+                      {index === 0 ? (
+                        <button
+                          type="button"
+                          className={style.btnBaseClass}
+                          onClick={() => addBuyBrandOrProduct(index)}
+                        >
+                          <i className={"fa fa-plus"}></i>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={style.btnDangerClass}
+                          onClick={() => removeBuyBrandOrProduct(index)}
+                        >
+                          <i className={"fa fa-minus"}></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </fieldset>
-          );
-        })}
+              </fieldset>
+            );
+          })}
       </div>
 
       <div className="mb-2 mt-5">
@@ -274,60 +277,67 @@ const PromoForm = ({ formData, onSubmit }) => {
           Offer Product
         </h2>
 
-        {offerProduct.map((_, index) => {
-          const fieldName = `offerProduct[${index}]`;
-          return (
-            <fieldset name={fieldName} key={fieldName}>
-              <div className="grid grid-cols-5 gap-2">
-                <div className="col-span-3">
-                  <div className="mb-2">
-                    <FormSelectInput
-                      options={formData?.product ?? []}
-                      label={"Select Product"}
-                      name={`${fieldName}.id`}
-                      errors={errors}
-                    />
+        {offerProduct
+          .filter((item) => !!item)
+          .map((_, index) => {
+            const fieldName = `offerProduct[${index}]`;
+            return (
+              <fieldset name={fieldName} key={fieldName}>
+                <div className="grid grid-cols-5 gap-2">
+                  <div className="col-span-3">
+                    <div className="mb-2">
+                      <FormSelectInput
+                        {...register(`${fieldName}.id`)}
+                        onChange={(e) => {
+                          setValue(`${fieldName}.id`, e.target.value);
+                          trigger(`${fieldName}.id`);
+                        }}
+                        options={formData?.product ?? []}
+                        label={"Select Product"}
+                        name={`${fieldName}.id`}
+                        errors={errors}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-1">
-                  <div className="mb-2">
-                    <FormInput
-                      type="number"
-                      label="Quantity"
-                      name={`${fieldName}.qty`}
-                      errors={errors}
-                    />
+                  <div className="col-span-1">
+                    <div className="mb-2">
+                      <FormInput
+                        {...register(`${fieldName}.qty`)}
+                        type="number"
+                        label="Quantity"
+                        name={`${fieldName}.qty`}
+                        errors={errors}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="col-span-1">
-                  <div className="mb-2 mt-6 text-center">
-                    {index === 0 ? (
-                      <button
-                        type="button"
-                        className={style.btnBaseClass}
-                        onClick={() => addOfferProduct(index)}
-                      >
-                        <i className={"fa fa-plus"}></i>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={style.btnDangerClass}
-                        onClick={() => removeOfferProduct(index)}
-                      >
-                        <i className={"fa fa-minus"}></i>
-                      </button>
-                    )}
+                  <div className="col-span-1">
+                    <div className="mb-2 mt-6 text-center">
+                      {index === 0 ? (
+                        <button
+                          type="button"
+                          className={style.btnBaseClass}
+                          onClick={() => addOfferProduct(index)}
+                        >
+                          <i className={"fa fa-plus"}></i>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={style.btnDangerClass}
+                          onClick={() => removeOfferProduct(index)}
+                        >
+                          <i className={"fa fa-minus"}></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </fieldset>
-          );
-        })}
+              </fieldset>
+            );
+          })}
       </div>
-
-      <div className="mt-6 text-center">
+      <div class="mt-6 text-center">
         <button
           type="button"
           onClick={() => handleSubmit(onSubmit)()}
@@ -336,7 +346,7 @@ const PromoForm = ({ formData, onSubmit }) => {
           Submit
         </button>
       </div>
-    </form>
+    </>
   );
 };
 

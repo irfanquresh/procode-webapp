@@ -7,6 +7,7 @@ import App from "App";
 import configureAppStore from "store/store";
 import "assets/styles/tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import "./index.css";
 
 const store = configureAppStore();
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -14,7 +15,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Provider store={store}>
     <BrowserRouter>
-        <App />
+      <App />
     </BrowserRouter>
   </Provider>
 );

@@ -2,19 +2,19 @@ import { apiSlice } from "store/apiSlice";
 
 const promoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    getPromo: builder.query({
+      query: (id) => ({
+        url: "/promo/" + id,
+        method: "GET",
+      }),
+    }),
     getPromos: builder.query({
       query: (data) => ({
-        url: "/promo",
+        url: "/promo?pageNumber=" + (data.pageNumber ?? 1),
         method: "GET",
       }),
     }),
-    getPromo: builder.query({
-      query: (data) => ({
-        url: "/promo/" + data._id,
-        method: "GET",
-      }),
-    }),
-    postPromo: builder.mutation({
+    createPromo: builder.mutation({
       query: (data) => ({
         url: "/promo",
         method: "POST",
@@ -23,19 +23,24 @@ const promoApiSlice = apiSlice.injectEndpoints({
     }),
     updatePromo: builder.mutation({
       query: (data) => ({
-        url: "/promo",
+        url: "/promo/" + data?.id,
         method: "PUT",
         body: { ...data },
       }),
     }),
     deletePromo: builder.mutation({
       query: (data) => ({
-        url: "/promo/" + data._id,
+        url: "/promo/" + data.id,
         method: "DELETE",
       }),
     }),
   }),
 });
 
-export const { useGetPromosQuery, useGetPromoQuery, usePostPromoMutation } =
-  promoApiSlice;
+export const {
+  useGetPromoQuery,
+  useGetPromosQuery,
+  useCreatePromoMutation,
+  useUpdatePromoMutation,
+  useDeletePromoMutation,
+} = promoApiSlice;

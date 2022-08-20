@@ -1,97 +1,192 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 // layout and components
 import CoverLayout from "layouts/CoverLayout";
+import ScrollWrapper from "components/Form/ScrollWrapper";
 import Alert from "components/Alert";
 import PromoForm from "./PromoForm";
+import PromoView from "./PromoView";
 
 // Store
 import { useGetBrandQuery } from "store/brand/brandApiSlice";
 import { useGetProductQuery } from "store/products/productApiSlice";
 import {
-  useGetPromosQuery,
   useGetPromoQuery,
-  usePostPromoMutation,
+  useGetPromosQuery,
+  useCreatePromoMutation,
+  useUpdatePromoMutation,
+  useDeletePromoMutation,
 } from "store/promo/promoApiSlice";
+import {
+  selectPromo,
+  setPromo,
+  setPromos,
+  setCreatePromo,
+  setUpdatePromo,
+  setRemovePromo,
+} from "store/promo/promoSlice";
+import DrawerPanel from "components/DrawerPanel";
 
 const Promo = (props) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [selectedPromo, setSelectedPromo] = useState();
-  const [createOrUpdate, setCreateOrUpdate] = useState(false);
 
-  // const profileData = useSelector(selectUserProfile);
+  const [alertMessage, setAlertMessage] = useState();
+  const [showForm, setShowForm] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumberTotal, setPageNumberTotal] = useState(0);
+  const [promoObj, setPromoObj] = useState();
+
+  const promoList = useSelector(selectPromo);
   // const promoCode = useSelector(selectPromoCode);
   // const strapiData = useSelector(selectStrapiContents);
 
-  const { data: brandData } = useGetBrandQuery();
-  const { data: productData } = useGetProductQuery();
-  const { data: promoData } = useGetPromosQuery();
-  const [postPromo, { isLoading }] = usePostPromoMutation();
+  const { data: brandData, isLoading: isLoadingBrand } = useGetBrandQuery();
+  const { data: productData, isLoading: isLoadingProd } = useGetProductQuery();
+  const { data: promoData, isLoading: isLoadingPromo } = useGetPromosQuery({
+    pageNumber,
+  });
+  const [createPromo, { isLoading: isLoadingCreate }] = useCreatePromoMutation();
+  const [updatePromo, { isLoading: isLoadingUpdate }] = useUpdatePromoMutation();
+  const [deletePromo, { isLoading: isLoadingDelete }] = useDeletePromoMutation();
 
-  const [alertMessage, setAlertMessage] = useState();
+  useEffect(() => {
+    if (promoData) {
+      console.log("🚀 ~ useEffect ~ promoData", promoData);
+      dispatch(setPromos(promoData));
+    }
+    if (promoData?.total) {
+      setPageNumberTotal(promoData?.total);
+    }
+  }, [dispatch, promoData]);
 
-  useEffect(() => {}, [dispatch]);
-
-  const onSubmit = async (data) => {
-    const res = await postPromo(data).unwrap();
-    console.log("🚀 ~ file: index.jsx ~ line 35 ~ onSubmit ~ res", res);
+  const handleNext = () => {
+    try {
+      const thePageNum = pageNumber;
+      console.log("🚀 ~ handleNext ~ pageNumberTotal", pageNumberTotal);
+      console.log("🚀 ~ handleNext ~ thePageNum", thePageNum);
+      if (thePageNum < pageNumberTotal) {
+        setPageNumber(thePageNum + 1);
+      }
+    } catch (e) {
+      console.log("e: ", e);
+    }
   };
 
-  const FormModal = ({ title, onClose, children }) => {
-    return (
-      <>
-        <div className="justify-center items-center shadow flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-          <div className="relative w-auto my-6 mx-auto max-w-3xl h-[95vh] overflow-auto">
-            <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-              <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
-                <h3 className="text-3xl font-semibold">{title}</h3>
-                <button
-                  className="p-1 ml-auto bg-transparent border-0 text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                  onClick={onClose}
-                >
-                  <span className="text-slate-500 h-6 w-6 text-2xl block outline-none focus:outline-none">
-                    <i className="fas fa-times"></i>
-                  </span>
-                </button>
-              </div>
-              <div className="relative p-6 flex-auto">{children}</div>
-            </div>
-          </div>
-        </div>
-        <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
-      </>
-    );
+  const onSubmit = async (data) => {
+    if (data?.id) {
+      onUpdateSubmit(data);
+    } else {
+      onCreateSubmit(data);
+    }
+  };
+  const onCreateSubmit = async (data) => {
+    const res = await createPromo(data).unwrap();
+    if (res && res?.id) {
+      dispatch(setPromo(res));
+      dispatch(setCreatePromo(res));
+      setShowForm(false);
+      setPromoObj(null);
+    }
+  };
+
+  const onUpdateSubmit = async (data) => {
+    const res = await updatePromo(data).unwrap();
+    if (res && res?.id) {
+      dispatch(setPromo(res));
+      dispatch(setUpdatePromo(res));
+      setShowForm(false);
+      setPromoObj(null);
+    }
+  };
+
+  const onDelete = async (data) => {
+    if (data?.id) {
+      const res = await deletePromo(data).unwrap();
+      if (res?.status === "SUCCESS") {
+        dispatch(setRemovePromo(data));
+        setAlertMessage(res?.message);
+      }
+    }
   };
 
   return (
     <CoverLayout>
-      <div className="flex-auto px-4 lg:px-10 rounded-t">
-        <div className="max-w-lg text-left pt-5">
-          <h1 className="text-slate-500 text-xl lg:text-3xl font-bold">
-            Buy X get Y
-          </h1>
-        </div>
-        {alertMessage ? (
-          <Alert
-            message={alertMessage}
-            colour="red"
-            onClose={() => setAlertMessage(null)}
-          />
-        ) : null}
+      <div className="mx-auto w-full">
+        <div className="flex flex-wrap mt-4">
+          <div className="w-full mb-12">
+            <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
+              <div className="rounded-t mb-0 px-4 py-3 border-0">
+                <div className="flex flex-wrap items-center">
+                  <div className="relative w-full px-4 max-w-full flex-grow flex-1">
+                    <h1 className="font-semibold text-base text-slate-700">
+                      Buy X Get Y
+                    </h1>
+                  </div>
+                  <div className="relative w-full max-w-full flex-grow flex-1 text-right">
+                    <button
+                      className="bg-sky-500 text-white active:bg-sky-600 text-sm font-bold uppercase px-3 py-1 rounded outline-none focus:outline-none mr-1 mb-1"
+                      type="button"
+                      style={{ transition: "all .15s ease" }}
+                      onClick={() => {
+                        setShowForm(true);
+                        setPromoObj({});
+                      }}
+                    >
+                      <i className="fas fa-plus"></i> New Promo
+                    </button>
+                  </div>
+                </div>
+                {alertMessage ? (
+                  <Alert
+                    message={alertMessage}
+                    colour="red"
+                    onClose={() => setAlertMessage("")}
+                  />
+                ) : null}
+              </div>
 
-        <FormModal title="Buy X Get Y" onClose={() => console.log("from model")}>
-          <PromoForm
-            formData={{
-              promo: selectedPromo,
-              brand: brandData,
-              product: productData,
-            }}
-            onSubmit={onSubmit}
-          />
-        </FormModal>
+              <div className="block w-full overflow-x-auto">
+                <ScrollWrapper onScroll={handleNext}>
+                  <PromoView
+                    data={promoList}
+                    loading={isLoadingPromo}
+                    onClick={(data) => {
+                      setPromoObj(data);
+                      setShowForm(true);
+                    }}
+                    onDelete={onDelete}
+                  />
+                </ScrollWrapper>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-auto px-4 rounded-t">
+        <DrawerPanel
+          show={showForm}
+          title={promoObj?.title ? promoObj?.title : "Create New"}
+          onClose={() => {
+            setShowForm(false);
+            setPromoObj(null);
+          }}
+        >
+          {showForm && promoObj ? (
+            <PromoForm
+              show={showForm}
+              formData={{
+                promo: promoObj,
+                brand: brandData,
+                product: productData,
+              }}
+              onSubmit={onSubmit}
+            />
+          ) : null}
+        </DrawerPanel>
       </div>
     </CoverLayout>
   );

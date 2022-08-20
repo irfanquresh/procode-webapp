@@ -3,7 +3,7 @@ import { apiSlice } from "store/apiSlice";
 const brandApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getBrand: builder.query({
-      query: (data) => ({
+      query: () => ({
         url: "/brand",
         method: "GET",
       }),
