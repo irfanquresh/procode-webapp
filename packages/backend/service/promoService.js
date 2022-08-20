@@ -2,12 +2,12 @@ import asyncHandler from "express-async-handler";
 import Promo from "../models/promoModel.js";
 
 const getPromos = asyncHandler(async (req, res) => {
-  const pageSize = 10;
+  const pageSize = 5;
   const page = Number(req.query.pageNumber) || 1;
 
   const keyword = req.query.keyword
     ? {
-        name: {
+        title: {
           $regex: req.query.keyword,
           $options: "i",
         },
@@ -17,12 +17,12 @@ const getPromos = asyncHandler(async (req, res) => {
   const count = await Promo.countDocuments({ ...keyword });
   const promos = await Promo.find(
     { ...keyword },
-    { title: 1, startDate: 1, endDate: 1, _id: 1 }
+    { title: 1, startDate: 1, endDate: 1, appliedOn: 1, _id: 1 }
   )
     .limit(pageSize)
     .skip(pageSize * (page - 1));
 
-  res.json({ promos, page, pages: Math.ceil(count / pageSize) });
+  res.json({ promos, count, page, total: Math.ceil(count / pageSize) });
 });
 
 const getPromoById = asyncHandler(async (req, res) => {
@@ -41,7 +41,7 @@ const deletePromo = asyncHandler(async (req, res) => {
 
   if (promo) {
     await promo.remove();
-    res.json({ message: "Promo removed" });
+    res.json({ status: "SUCCESS", message: `${promo.title} is removed!` });
   } else {
     res.status(404);
     throw new Error("Promo not found");
