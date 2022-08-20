@@ -1121,6 +1121,10 @@ h6 {
   flex: 1 1 0%;
 }
 
+.flex-none {
+  flex: none;
+}
+
 .flex-auto {
   flex: 1 1 auto;
 }
@@ -1364,10 +1368,6 @@ h6 {
   padding: 0.25rem;
 }
 
-.p-2 {
-  padding: 0.5rem;
-}
-
 .p-5 {
   padding: 1.25rem;
 }
@@ -1457,10 +1457,6 @@ h6 {
 
 .text-center {
   text-align: center;
-}
-
-.text-right {
-  text-align: right;
 }
 
 .align-middle {

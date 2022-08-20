@@ -11,20 +11,20 @@ export const nullChecker = (val) => (!val ? " - " : val);
 
 const style = {
   table: {
-    th: "px-6 bg-slate-50 text-slate-500 align-middle border border-solid border-slate-100 py-3 text-sm uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left",
-    td: "border-t-0 px-6 align-middle border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-left",
+    th: "px-2 bg-slate-50 text-slate-500 align-middle border border-solid border-slate-100 py-3 text-md uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left",
+    td: "px-2 align-middle border-t-0 border-l-0 border-r-0 text-md whitespace-nowrap p-4 text-left",
   },
 };
 
 const PromoView = ({ data, isLoading, onClick, onDelete }) => {
-  const { promos, pageNumber, pageNumberTotal } = data;
+  const { promos } = data;
   return (
     <>
       {promos && promos.length > 0 ? (
         <div className="block w-full overflow-x-auto">
           <table className="iitems-center w-full bg-transparent border-collapse">
             <thead className="text-gray-700 bg-gray-50">
-              <tr className="font-semibold py-3 text-sm uppercase text-left bg-gray-50 text-gray-700 align-middle border border-solid border-blueGray-100  border-l-0 border-r-0 whitespace-nowrap">
+              <tr className="font-semibold py-3 text-sm uppercase text-left bg-gray-50 text-gray-700 align-middle border border-solid border-slate-100  border-l-0 border-r-0 whitespace-nowrap">
                 <th className={style.table.th}>Title</th>
                 <th className={style.table.th}>startDate</th>
                 <th className={style.table.th}>endDate</th>
@@ -38,7 +38,7 @@ const PromoView = ({ data, isLoading, onClick, onDelete }) => {
                 return (
                   <tr
                     key={"" + data?.id}
-                    className="p-2 text-left text-sm align-middle border-l-0 border-r-0  whitespace-nowrap"
+                    className="text-left text-md align-middle border-l-0 border-r-0 border border-solid border-slate-100 whitespace-nowrap"
                   >
                     <td className={style.table.td}>{nullChecker(data.title)}</td>
                     <td className={style.table.td}>

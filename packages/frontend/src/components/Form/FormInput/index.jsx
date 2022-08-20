@@ -11,10 +11,15 @@ const style = {
 };
 
 const FormInput = forwardRef((props, ref) => {
-  const { type, label, name, errors } = props;
+  const { type, label, name, errors, onChange } = props;
   return (
     <>
-      <label className="block text-slate-600 text-sm font-bold">{label ?? ""}</label>
+      {label ? (
+        <label className="block text-slate-600 text-sm font-bold">
+          {label ?? ""}
+        </label>
+      ) : null}
+
       <div className="relative w-full">
         <input
           ref={ref}

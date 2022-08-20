@@ -7,7 +7,7 @@ import CoverLayout from "layouts/CoverLayout";
 import ScrollWrapper from "components/Form/ScrollWrapper";
 import Alert from "components/Alert";
 import PromoForm from "./PromoForm";
-import PromoView from "./PromoView";
+import PromoView, { DisplayLabel } from "./PromoView";
 
 // Store
 import { useGetBrandQuery } from "store/brand/brandApiSlice";
@@ -28,15 +28,18 @@ import {
   setRemovePromo,
 } from "store/promo/promoSlice";
 import DrawerPanel from "components/DrawerPanel";
+import FormInput from "components/Form/FormInput";
 
 const Promo = (props) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [alertMessage, setAlertMessage] = useState();
+  const [keyword, setKeyword] = useState();
   const [showForm, setShowForm] = useState(false);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageNumberTotal, setPageNumberTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
+  const [total, setTotal] = useState(0);
   const [promoObj, setPromoObj] = useState();
 
   const promoList = useSelector(selectPromo);
@@ -46,7 +49,8 @@ const Promo = (props) => {
   const { data: brandData, isLoading: isLoadingBrand } = useGetBrandQuery();
   const { data: productData, isLoading: isLoadingProd } = useGetProductQuery();
   const { data: promoData, isLoading: isLoadingPromo } = useGetPromosQuery({
-    pageNumber,
+    pageNumber: page ?? 1,
+    keyword: keyword ?? "",
   });
   const [createPromo, { isLoading: isLoadingCreate }] = useCreatePromoMutation();
   const [updatePromo, { isLoading: isLoadingUpdate }] = useUpdatePromoMutation();
@@ -54,21 +58,21 @@ const Promo = (props) => {
 
   useEffect(() => {
     if (promoData) {
-      console.log("🚀 ~ useEffect ~ promoData", promoData);
       dispatch(setPromos(promoData));
     }
+    if (promoData?.count) {
+      setCount(promoData?.count);
+    }
     if (promoData?.total) {
-      setPageNumberTotal(promoData?.total);
+      setTotal(promoData?.total);
     }
   }, [dispatch, promoData]);
 
   const handleNext = () => {
     try {
-      const thePageNum = pageNumber;
-      console.log("🚀 ~ handleNext ~ pageNumberTotal", pageNumberTotal);
-      console.log("🚀 ~ handleNext ~ thePageNum", thePageNum);
-      if (thePageNum < pageNumberTotal) {
-        setPageNumber(thePageNum + 1);
+      const thePageNum = page;
+      if (thePageNum < total) {
+        setPage(thePageNum + 1);
       }
     } catch (e) {
       console.log("e: ", e);
@@ -108,6 +112,7 @@ const Promo = (props) => {
       if (res?.status === "SUCCESS") {
         dispatch(setRemovePromo(data));
         setAlertMessage(res?.message);
+        setCount((t) => t - 1);
       }
     }
   };
@@ -120,14 +125,28 @@ const Promo = (props) => {
             <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
               <div className="rounded-t mb-0 px-4 py-3 border-0">
                 <div className="flex flex-wrap items-center">
-                  <div className="relative w-full px-4 max-w-full flex-grow flex-1">
+                  <div className="relative px-4 flex-none">
                     <h1 className="font-semibold text-base text-slate-700">
                       Buy X Get Y
                     </h1>
                   </div>
-                  <div className="relative w-full max-w-full flex-grow flex-1 text-right">
+
+                  <div className="relative px-4 flex-grow">
+                    <div className="mb-2">
+                      <FormInput
+                        type="text"
+                        name="keyword"
+                        placeholder="Search"
+                        onChange={(e) => {
+                          setPage(1);
+                          setKeyword(e.target.value);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="relative text-left flex-none">
                     <button
-                      className="bg-sky-500 text-white active:bg-sky-600 text-sm font-bold uppercase px-3 py-1 rounded outline-none focus:outline-none mr-1 mb-1"
+                      className="bg-sky-500 text-white active:bg-sky-600 text-sm font-bold uppercase px-3 py-2.5 rounded outline-none focus:outline-none mr-1 mb-1"
                       type="button"
                       style={{ transition: "all .15s ease" }}
                       onClick={() => {
@@ -135,7 +154,7 @@ const Promo = (props) => {
                         setPromoObj({});
                       }}
                     >
-                      <i className="fas fa-plus"></i> New Promo
+                      <i className="fas fa-plus"></i>Add New Promo
                     </button>
                   </div>
                 </div>
@@ -160,6 +179,7 @@ const Promo = (props) => {
                     onDelete={onDelete}
                   />
                 </ScrollWrapper>
+                <DisplayLabel message={`Total Record Count: ${count ?? 0}`} />
               </div>
             </div>
           </div>

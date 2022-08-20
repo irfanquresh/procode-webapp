@@ -10,7 +10,11 @@ const promoApiSlice = apiSlice.injectEndpoints({
     }),
     getPromos: builder.query({
       query: (data) => ({
-        url: "/promo?pageNumber=" + (data.pageNumber ?? 1),
+        url:
+          "/promo?pageNumber=" +
+            (data.pageNumber ?? 1) +
+            "&keyword=" +
+            data?.keyword ?? "",
         method: "GET",
       }),
     }),
