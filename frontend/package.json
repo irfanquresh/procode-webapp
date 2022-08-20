@@ -28,8 +28,8 @@
     "yup": "^0.32.11"
   },
   "scripts": {
-    "start": "npm run build-tailwind && dotenv -e .env react-scripts start",
-    "build": "npm run build-tailwind && dotenv -e .env react-scripts build",
+    "start": "npm run build-tailwind && react-scripts start",
+    "build": "npm run build-tailwind && react-scripts build",
     "build-tailwind": "rm -rf src/assets/styles/tailwind.css &&  tailwindcss build -i src/assets/styles/index.css -o src/assets/styles/tailwind.css",
     "install-clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install",
     "test": "react-scripts test",
