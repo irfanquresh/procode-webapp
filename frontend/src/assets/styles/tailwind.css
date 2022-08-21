@@ -1121,10 +1121,6 @@ h6 {
   flex: 1 1 0%;
 }
 
-.flex-none {
-  flex: none;
-}
-
 .flex-auto {
   flex: 1 1 auto;
 }
@@ -1178,6 +1174,10 @@ h6 {
   align-content: center;
 }
 
+.content-end {
+  align-content: flex-end;
+}
+
 .items-start {
   align-items: flex-start;
 }
@@ -1188,6 +1188,10 @@ h6 {
 
 .items-center {
   align-items: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }
 
 .justify-center {
@@ -1457,6 +1461,10 @@ h6 {
 
 .text-center {
   text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .align-middle {
@@ -1841,6 +1849,16 @@ input[type="number"] {
   }
 }
 
+@media (min-width: 768px) {
+  .md\:w-auto {
+    width: auto;
+  }
+
+  .md\:flex-none {
+    flex: none;
+  }
+}
+
 @media (min-width: 992px) {
   .lg\:static {
     position: static;
@@ -1856,6 +1874,10 @@ input[type="number"] {
 
   .lg\:w-10\/12 {
     width: 83.333333%;
+  }
+
+  .lg\:max-w-md {
+    max-width: 28rem;
   }
 
   .lg\:justify-start {

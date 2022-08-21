@@ -131,7 +131,7 @@ const Promo = (props) => {
                     </h1>
                   </div>
 
-                  <div className="relative px-4 flex-none md:flex-grow">
+                  <div className="relative px-4  flex-grow md:flex:none">
                     <div className="mb-2">
                       <FormInput
                         type="text"
@@ -144,9 +144,9 @@ const Promo = (props) => {
                       />
                     </div>
                   </div>
-                  <div className="relative text-left flex-none">
+                  <div className="relative px-4 text-right justify-end content-end flex-grow md:flex:none">
                     <button
-                      className="bg-sky-500 text-white active:bg-sky-600 text-sm font-bold uppercase px-3 py-2.5 rounded outline-none focus:outline-none mr-1 mb-1"
+                      className="w-full md:w-auto lg:max-w-md text-white text-sm font-bold bg-sky-500 active:bg-sky-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none   ease-linear transition-all duration-150"
                       type="button"
                       style={{ transition: "all .15s ease" }}
                       onClick={() => {
