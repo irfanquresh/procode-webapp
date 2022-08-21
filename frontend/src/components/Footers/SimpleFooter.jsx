@@ -12,7 +12,7 @@ const FooterSmall = (props) => {
                   href="#/"
                   className="hover:text-slate-500 text-sm font-semibold py-1"
                 >
-                  Copyright © {new Date().getFullYear()} GA Group Inc. All
+                  Copyright © {new Date().getFullYear()}. All
                   Rights Reserved.
                 </a>
               </div>

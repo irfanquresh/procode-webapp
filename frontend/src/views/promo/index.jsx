@@ -125,13 +125,13 @@ const Promo = (props) => {
             <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
               <div className="rounded-t mb-0 px-4 py-3 border-0">
                 <div className="flex flex-wrap items-center">
-                  <div className="relative px-4 flex-none">
+                  <div className="relative px-4 md:flex-none">
                     <h1 className="font-semibold text-base text-slate-700">
                       Buy X Get Y
                     </h1>
                   </div>
 
-                  <div className="relative px-4 flex-grow">
+                  <div className="relative px-4 flex-none md:flex-grow">
                     <div className="mb-2">
                       <FormInput
                         type="text"
