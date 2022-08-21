@@ -93,6 +93,7 @@ const Promo = (props) => {
       dispatch(setCreatePromo(res));
       setShowForm(false);
       setPromoObj(null);
+      setCount((t) => t + 1);
     }
   };
 
