@@ -51,4 +51,4 @@ npm run data:destroy
 ```
 
 ### Code Walk through:
-https://drive.google.com/file/d/1QRgz-i8DFlVrZqsoO_Ap0yRcPEVG9tBn/view?usp=sharing
+https://drive.google.com/file/d/1xPUoMxwRQwvyN5samxfD0B6nTucZ4nfd/view?usp=sharing
