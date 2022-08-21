@@ -13,7 +13,7 @@ import PromoView, { DisplayLabel } from "./PromoView";
 import { useGetBrandQuery } from "store/brand/brandApiSlice";
 import { useGetProductQuery } from "store/products/productApiSlice";
 import {
-  useGetPromoQuery,
+  useGetAllPromosQuery,
   useGetPromosQuery,
   useCreatePromoMutation,
   useUpdatePromoMutation,
@@ -29,6 +29,7 @@ import {
 } from "store/promo/promoSlice";
 import DrawerPanel from "components/DrawerPanel";
 import FormInput from "components/Form/FormInput";
+import { exportToAdvCSV } from "utils/file.util";
 
 const Promo = (props) => {
   const dispatch = useDispatch();
@@ -37,24 +38,31 @@ const Promo = (props) => {
   const [alertMessage, setAlertMessage] = useState();
   const [keyword, setKeyword] = useState();
   const [showForm, setShowForm] = useState(false);
+  const [isExport, setIsExport] = useState(false);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [total, setTotal] = useState(0);
   const [promoObj, setPromoObj] = useState();
 
   const promoList = useSelector(selectPromo);
-  // const promoCode = useSelector(selectPromoCode);
-  // const strapiData = useSelector(selectStrapiContents);
 
-  const { data: brandData, isLoading: isLoadingBrand } = useGetBrandQuery();
-  const { data: productData, isLoading: isLoadingProd } = useGetProductQuery();
+  const { data: brandData } = useGetBrandQuery();
+  const { data: productData } = useGetProductQuery();
   const { data: promoData, isLoading: isLoadingPromo } = useGetPromosQuery({
     pageNumber: page ?? 1,
     keyword: keyword ?? "",
   });
-  const [createPromo, { isLoading: isLoadingCreate }] = useCreatePromoMutation();
-  const [updatePromo, { isLoading: isLoadingUpdate }] = useUpdatePromoMutation();
-  const [deletePromo, { isLoading: isLoadingDelete }] = useDeletePromoMutation();
+
+  const {
+    data: exportedData,
+    refetch: refetchPromo,
+    isFetching: isFetchingExp,
+    isLoading: isLoadingExp,
+  } = useGetAllPromosQuery({}, { skip: !isExport });
+
+  const [createPromo] = useCreatePromoMutation();
+  const [updatePromo] = useUpdatePromoMutation();
+  const [deletePromo] = useDeletePromoMutation();
 
   useEffect(() => {
     if (promoData) {
@@ -67,6 +75,23 @@ const Promo = (props) => {
       setTotal(promoData?.total);
     }
   }, [dispatch, promoData]);
+
+  useEffect(() => {
+    if (exportedData && exportedData?.data?.length) {
+      const { heading, header, data } = exportedData;
+
+      const wscols = [
+        { wch: Math.max(...data.map((t) => t.title.length)) },
+        { wch: Math.max(...data.map((t) => t.startDate.length)) },
+        { wch: Math.max(...data.map((t) => t.endDate.length)) },
+        { wch: Math.max(...data.map((t) => t.appliedOn.length)) },
+        { wch: Math.max(...data.map((t) => t.buyBrandOrProduct.length)) },
+        { wch: Math.max(...data.map((t) => t.offerProduct.length)) },
+      ];
+
+      exportToAdvCSV(heading, header, data, "buy_x_get_y_xlsx", wscols);
+    }
+  }, [exportedData, isLoadingExp, isFetchingExp]);
 
   const handleNext = () => {
     try {
@@ -125,38 +150,51 @@ const Promo = (props) => {
           <div className="w-full mb-12">
             <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
               <div className="rounded-t mb-0 px-4 py-3 border-0">
-                <div className="flex flex-wrap items-center">
-                  <div className="relative px-4 md:flex-none">
-                    <h1 className="font-semibold text-base text-slate-700">
+                <div className="flex">
+                  <div className="grow-0 lg:pr-5">
+                    <h1 className="text-slate-400 text-lg lg:text-3xl font-bold">
                       Buy X Get Y
                     </h1>
                   </div>
-
-                  <div className="relative px-4  flex-grow md:flex:none">
-                    <div className="mb-2">
-                      <FormInput
-                        type="text"
-                        name="keyword"
-                        placeholder="Search"
-                        onChange={(e) => {
-                          setPage(1);
-                          setKeyword(e.target.value);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="relative px-4 text-right justify-end content-end flex-grow md:flex:none">
-                    <button
-                      className="w-full md:w-auto lg:max-w-md text-white text-sm font-bold bg-sky-500 active:bg-sky-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none   ease-linear transition-all duration-150"
-                      type="button"
-                      style={{ transition: "all .15s ease" }}
-                      onClick={() => {
-                        setShowForm(true);
-                        setPromoObj({});
+                  <div className="grow pr-1">
+                    <FormInput
+                      type="text"
+                      name="keyword"
+                      placeholder="Search"
+                      onChange={(e) => {
+                        setPage(1);
+                        setKeyword(e.target.value);
                       }}
-                    >
-                      <i className="fas fa-plus"></i>Add New Promo
-                    </button>
+                    />
+                  </div>
+                  <div className="flex-none grow-0">
+                    <div className="inline-flex rounded-md shadow-sm" role="group">
+                      <button
+                        className="text-white mr-1 text-sm font-bold bg-sky-500 active:bg-sky-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none   ease-linear transition-all duration-150"
+                        type="button"
+                        style={{ transition: "all .15s ease" }}
+                        onClick={() => {
+                          setShowForm(true);
+                          setPromoObj({});
+                        }}
+                      >
+                        <i className="fas fa-plus pr-2"></i>Add New
+                      </button>
+                      <button
+                        className="text-white text-sm font-bold bg-sky-500 active:bg-sky-400 uppercase px-6 py-2.5 rounded-2 shadow hover:shadow-lg outline-none focus:outline-none   ease-linear transition-all duration-150"
+                        type="button"
+                        style={{ transition: "all .15s ease" }}
+                        onClick={() => {
+                          if (isExport === true) {
+                            refetchPromo();
+                          } else {
+                            setIsExport(true);
+                          }
+                        }}
+                      >
+                        <i className="fas fa-file-export pr-2"></i>Export
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {alertMessage ? (

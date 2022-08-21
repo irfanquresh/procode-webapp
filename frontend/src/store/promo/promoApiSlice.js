@@ -2,9 +2,9 @@ import { apiSlice } from "store/apiSlice";
 
 const promoApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getPromo: builder.query({
-      query: (id) => ({
-        url: "/promo/" + id,
+    getAllPromos: builder.query({
+      query: () => ({
+        url: "/promo/all",
         method: "GET",
       }),
     }),
@@ -15,6 +15,12 @@ const promoApiSlice = apiSlice.injectEndpoints({
             (data.pageNumber ?? 1) +
             "&keyword=" +
             data?.keyword ?? "",
+        method: "GET",
+      }),
+    }),
+    getPromo: builder.query({
+      query: (id) => ({
+        url: "/promo/" + id,
         method: "GET",
       }),
     }),
@@ -42,9 +48,11 @@ const promoApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetPromoQuery,
+  useGetAllPromosQuery,
   useGetPromosQuery,
+  useGetPromoQuery,
   useCreatePromoMutation,
   useUpdatePromoMutation,
   useDeletePromoMutation,
+  useExportPromosQuery,
 } = promoApiSlice;
