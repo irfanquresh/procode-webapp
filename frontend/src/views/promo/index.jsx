@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 // layout and components
 import CoverLayout from "layouts/CoverLayout";
-import ScrollWrapper from "components/Form/ScrollWrapper";
+import ScrollWrapper from "components/ScrollWrapper";
 import Alert from "components/Alert";
 import PromoForm from "./PromoForm";
 import PromoView, { DisplayLabel } from "./PromoView";

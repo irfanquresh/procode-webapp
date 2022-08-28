@@ -7,13 +7,15 @@ import { apiSlice } from "store/apiSlice";
 import brandReducer from "store/brand/brandSlice";
 import productReducer from "store/products/productSlice";
 import promoReducer from "store/promo/promoSlice";
+import testReducer from "store/test-library/testSlice";
 import { nodeEnv } from "config/constants";
 
 export default function configureAppStore() {
   const preloadedState = {
-    brand:{},
-    product:{},
+    brand: {},
+    product: {},
     promo: {},
+    test: {},
   };
 
   const rootReducer = {
@@ -21,6 +23,7 @@ export default function configureAppStore() {
     brand: brandReducer,
     product: productReducer,
     promo: promoReducer,
+    test: testReducer,
   };
 
   const store = configureStore({
@@ -31,6 +34,6 @@ export default function configureAppStore() {
     preloadedState,
     enhancers: [monitorReducerEnhancer],
   });
-  
+
   return store;
 }

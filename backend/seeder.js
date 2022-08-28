@@ -4,9 +4,11 @@ import colors from "colors";
 
 import brands from "./data/brands.data.js";
 import products from "./data/products.data.js";
+import testLibrary from "./data/test-library.data.js";
 
 import Brand from "./models/brandModel.js";
 import Product from "./models/productModel.js";
+import TestLibrary from "./models/testLibraryModel.js";
 import connectDB from "./config/db.js";
 
 dotenv.config();
@@ -17,6 +19,7 @@ const importData = async () => {
   try {
     await Brand.deleteMany();
     await Product.deleteMany();
+    await TestLibrary.deleteMany();
 
     const mappedBrand = brands.map((brand) => {
       delete brand._id;
@@ -31,6 +34,13 @@ const importData = async () => {
       return prod;
     });
     await Product.insertMany(mappedProd);
+
+    const mappedTestLibrary = testLibrary.map((data) => {
+      delete data._id;
+      delete data.__v;
+      return data;
+    });
+    await TestLibrary.insertMany(mappedTestLibrary);
 
     console.log("Data Imported!".green.inverse);
     process.exit();

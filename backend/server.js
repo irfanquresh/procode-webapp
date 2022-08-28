@@ -9,6 +9,8 @@ import connectDB from "./config/db.js";
 import brandController from "./controller/brandController.js";
 import productController from "./controller/productController.js";
 import promoController from "./controller/promoController.js";
+import testLibraryController from "./controller/testLibraryController.js";
+import assessmentController from "./controller/assessmentController.js";
 import healthController from "./controller/healthController.js";
 
 dotenv.config();
@@ -26,6 +28,8 @@ app.use(express.json());
 app.use("/api/brand", brandController);
 app.use("/api/product", productController);
 app.use("/api/promo", promoController);
+app.use("/api/test", testLibraryController);
+app.use("/api/assessment", assessmentController);
 app.use("/health", healthController);
 
 const __dirname = path.resolve();
